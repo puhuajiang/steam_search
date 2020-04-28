@@ -1,0 +1,41 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>results</title>
+  <style>
+      table, th, td {
+          border: 1px solid black;
+      }
+  </style>
+</head>
+<body>
+    <h3>
+        Games are ...
+    
+    <table style="width: auto">
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Release Date</th>
+            <th>Review</th>
+            <th>Score rate</th>
+            <th>Price</th>
+        </tr>
+        {% for game in results %}
+        <tr>
+            <th>{{game[0]}} </th>
+            <th><a href={{base_url~game[0]}}> {{game[1]}} </a></th>
+            <th>{{game[2]}}</th>
+            <th>{{game[3]}}</th>
+            <th>{{game[4]}}</th>
+            <th>{{game[5]}}</th>
+        </tr>
+        
+        {% endfor %}
+    
+    </table>
+    </h3> 
+</body>
+</html>

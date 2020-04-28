@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF8"/>
+    <title>Plotly</title>
+</head>
+<body>
+    <form action="/detail_form" method="POST">
+    <h1>Here is your result!</h1>
+    {{plot_div | safe}}
+    <i>(I hope you liked it)</i>
+
+    <p>
+        Please choose one to show detail:
+    </p>
+    <p>
+            {% for game in results %}
+            <input type="radio" name="num" value="{{game[0]}}">{{game[1]}}<br/>
+            {% endfor %}
+    </p>
+    <input type="submit" value="Submit Form"/>
+    </form>
+</body>
+</html>
