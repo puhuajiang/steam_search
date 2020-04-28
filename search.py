@@ -68,10 +68,8 @@ def make_request_with_cache(url, cache):
     ----------
     baseurl: string
         The URL for the API endpoint
-    hashtag: string
-        The hashtag to search(i.e. "#2020election")
-    count: int
-        The number of tweets to retrieve
+    cache: 
+        dict to store data
     
     Returns
     -------
@@ -94,6 +92,20 @@ def make_request_with_cache(url, cache):
 
 
 def get_search_results(baseurl, search_term):
+    '''Get search results by request a url
+    
+    Parameters
+    ----------
+    baseurl: string
+        The URL for the API endpoint
+    search term: string
+        The term to search
+    
+    Returns
+    -------
+    dict
+        the results 
+    '''
     search_url = baseurl + search_term + '&category1=998'
     response_text = make_request_with_cache(search_url, CACHE_DICT)
     soup = BeautifulSoup(response_text, 'html.parser')
@@ -137,6 +149,17 @@ def get_search_results(baseurl, search_term):
         return results
 
 def get_detail_results(game_dicts):
+    '''Get detail results by query the database
+    
+    Parameters
+    ----------
+    game_dicts: dict
+    
+    Returns
+    -------
+    dict
+        the results 
+    '''
     results =[]
     url = 'https://store.steampowered.com/app/'
     game_num_url = 'https://steamcommunity.com/app/'
@@ -163,7 +186,18 @@ def get_detail_results(game_dicts):
 
         
 DB_NAME = 'games.sqlite'
+
 def creat_db():
+    '''creat database
+    
+    Parameters
+    ----------
+    None
+    
+    Returns
+    -------
+    None
+    '''
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
 
@@ -200,6 +234,16 @@ def creat_db():
     conn.close()
 
 def load_games(game_dict):
+    '''load  game info to datavase
+    
+    Parameters
+    ----------
+    game_dict: dict
+    
+    Returns
+    -------
+    None
+    '''
 
     insert_games_sql = '''
         INSERT INTO Games
@@ -221,6 +265,16 @@ def load_games(game_dict):
     conn.close()
 
 def load_details(detail_dict):
+    '''load detail info to datavase
+    
+    Parameters
+    ----------
+    game_dict: dict
+    
+    Returns
+    -------
+    None
+    '''
 
     insert_details_sql = '''
         INSERT INTO Details
@@ -264,6 +318,18 @@ def Execute_Query(Query):
     return result
 
 def get_db_results(method):
+    '''Connect the Database and get results
+        
+    Parameters
+    ----------
+    method: str
+    
+    Returns
+    -------
+    results
+        a list of tuples that represent the query result
+        
+    '''
     if method == '1':
         query = '''
         SELECT * FROM Games
@@ -290,39 +356,24 @@ def get_db_results(method):
 
 
 def get_details(ID):
+    '''Connect the Database and get results
+        
+    Parameters
+    ----------
+    ID: str
+    
+    Returns
+    -------
+    results
+        a list of tuples that represent the query result
+        
+    '''
     query = '''
         SELECT * FROM Details
         WHERE Id = {}
         '''.format(ID)
     results = Execute_Query(query)
     return results
-    
-
-# def print_query_result(raw_query_result):
-#     ''' Pretty prints raw query result
-#
-#     Parameters
-#     ----------
-#     list
-#         a list of tuples that represent raw query result
-#
-#     Returns
-#     -------
-#     None
-#     '''
-#     if raw_query_result is not None and len(raw_query_result) > 0:
-#         num = 0
-#         for Tuple in raw_query_result:
-#             lists = list(map(str, Tuple))
-#             output = str(num) + "|"
-#             for string in lists:
-#                 if len(string) >= 12:
-#                     string = string[0:15] + "..."
-#                 output += string.center(18) + "|"
-#             print(output)
-#             num += 1
-#     else:
-#         print("NO DATA, Command not recognized!")
 
 def plot_query_result(raw_query_result):
     '''plot query result
@@ -392,6 +443,16 @@ def show_detail_form():
 
 
 def load_database(game_dict):
+    '''load detail info to datavase
+    
+    Parameters
+    ----------
+    game_dict: dict
+    
+    Returns
+    -------
+    None
+    '''
     details_dict = get_detail_results(game_dict)
     creat_db()
     load_games(game_dict)
