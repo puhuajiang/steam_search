@@ -98,41 +98,43 @@ def get_search_results(baseurl, search_term):
     response_text = make_request_with_cache(search_url, CACHE_DICT)
     soup = BeautifulSoup(response_text, 'html.parser')
     search_results = soup.find(id='search_resultsRows')
-    search_lists = search_results.find_all('a')
-    results = []
-    
-    for game_info in search_lists:
-        game_dict = {}
-        if 'data-ds-appid' not in game_info.attrs.keys():
-            continue
-        else:
-            game_dict['game_id'] = game_info.attrs['data-ds-appid']
-
-        title = game_info.find('span', class_='title').text
-        game_dict['title'] = title if title is not None else 'None'
-
-        release_date = game_info.find('div', class_='search_released').text
-        game_dict['release_date'] = release_date if release_date is not None and len(release_date) > 0 else 'None'
-
-        reviewscore = game_info.find('div', class_='search_reviewscore').find('span')
-        if reviewscore is not None:
-            score = reviewscore.attrs['data-tooltip-html'].split('<br>')
-            game_dict['review'] = score[0]
-            game_dict['score_rate'] = score[1][0:2]
-        else:
-            game_dict['review'] = 'None'
-            game_dict['score_rate'] = 'None'
-        
-        price = game_info.find('div', class_ ='search_price').text.strip()
-        if price is None or len(price) == 0:
-            game_dict['price'] = 'None'
-        else:
-            if price == "Free" or price == "Free To Play" or price == "Free to Play":
-                game_dict['price'] = '0'
+    if search_results is None:
+        return None
+    else:
+        search_lists = search_results.find_all('a')
+        results = []
+        for game_info in search_lists:
+            game_dict = {}
+            if 'data-ds-appid' not in game_info.attrs.keys():
+                continue
             else:
-                game_dict['price'] = price.split('$')[-1]
-        results.append(game_dict)  
-    return results
+                game_dict['game_id'] = game_info.attrs['data-ds-appid']
+
+            title = game_info.find('span', class_='title').text
+            game_dict['title'] = title if title is not None else 'None'
+
+            release_date = game_info.find('div', class_='search_released').text
+            game_dict['release_date'] = release_date if release_date is not None and len(release_date) > 0 else 'None'
+
+            reviewscore = game_info.find('div', class_='search_reviewscore').find('span')
+            if reviewscore is not None:
+                score = reviewscore.attrs['data-tooltip-html'].split('<br>')
+                game_dict['review'] = score[0]
+                game_dict['score_rate'] = score[1][0:2]
+            else:
+                game_dict['review'] = 'None'
+                game_dict['score_rate'] = 'None'
+
+            price = game_info.find('div', class_ ='search_price').text.strip()
+            if price is None or len(price) == 0:
+                game_dict['price'] = 'None'
+            else:
+                if price == "Free" or price == "Free To Play" or price == "Free to Play":
+                    game_dict['price'] = '0'
+                else:
+                    game_dict['price'] = price.split('$')[-1]
+            results.append(game_dict)
+        return results
 
 def get_detail_results(game_dicts):
     results =[]
@@ -296,31 +298,31 @@ def get_details(ID):
     return results
     
 
-def print_query_result(raw_query_result):
-    ''' Pretty prints raw query result
-    
-    Parameters
-    ----------
-    list 
-        a list of tuples that represent raw query result
-    
-    Returns
-    -------
-    None
-    '''
-    if raw_query_result is not None and len(raw_query_result) > 0:
-        num = 0
-        for Tuple in raw_query_result:
-            lists = list(map(str, Tuple))
-            output = str(num) + "|"
-            for string in lists:
-                if len(string) >= 12:
-                    string = string[0:15] + "..."
-                output += string.center(18) + "|"
-            print(output)
-            num += 1
-    else:
-        print("NO DATA, Command not recognized!")
+# def print_query_result(raw_query_result):
+#     ''' Pretty prints raw query result
+#
+#     Parameters
+#     ----------
+#     list
+#         a list of tuples that represent raw query result
+#
+#     Returns
+#     -------
+#     None
+#     '''
+#     if raw_query_result is not None and len(raw_query_result) > 0:
+#         num = 0
+#         for Tuple in raw_query_result:
+#             lists = list(map(str, Tuple))
+#             output = str(num) + "|"
+#             for string in lists:
+#                 if len(string) >= 12:
+#                     string = string[0:15] + "..."
+#                 output += string.center(18) + "|"
+#             print(output)
+#             num += 1
+#     else:
+#         print("NO DATA, Command not recognized!")
 
 def plot_query_result(raw_query_result):
     '''plot query result
@@ -354,16 +356,6 @@ def plot_query_result(raw_query_result):
     return div
     
 
-    
-    
-
-
-
-
-
-
-
-
 
 app = Flask(__name__)
 
@@ -374,16 +366,21 @@ def index():
 @app.route('/handle_form', methods=['POST'])
 def handle_the_form():
     name = request.form["name"]
-    load_database(name)
-    order = request.form["order"]
-    results = get_db_results(order)
-    way = request.form["way"]
-    if way == '2':
-        div = plot_query_result(results)
-        return render_template('plot.html', plot_div=div, results=results)
-    elif way == '3':
-        url = 'https://store.steampowered.com/app/'
-        return render_template('results.html', results=results, base_url=url)
+    baseurl = "https://store.steampowered.com/search/?term="
+    game_dict = get_search_results(baseurl, name)
+    if game_dict is None:
+        return render_template('response.html')
+    else:
+        load_database(game_dict)
+        order = request.form["order"]
+        results = get_db_results(order)
+        way = request.form["way"]
+        if way == '2':
+            div = plot_query_result(results)
+            return render_template('plot.html', plot_div=div, results=results)
+        elif way == '3':
+            url = 'https://store.steampowered.com/app/'
+            return render_template('results.html', results=results, base_url=url)
 
 @app.route('/detail_form', methods=['POST'])
 def show_detail_form():
@@ -394,9 +391,7 @@ def show_detail_form():
 
 
 
-def load_database(name):
-    baseurl = "https://store.steampowered.com/search/?term="
-    game_dict = get_search_results(baseurl, name)
+def load_database(game_dict):
     details_dict = get_detail_results(game_dict)
     creat_db()
     load_games(game_dict)
